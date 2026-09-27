@@ -15,4 +15,4 @@ jobs:
       - name: Install YAML lint
         run: |
             python3 -m pip install yamllint
-            yamllint /projets
+            yamllint ${{ github.workspace }}/projets/
