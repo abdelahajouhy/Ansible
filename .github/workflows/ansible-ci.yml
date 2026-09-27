@@ -3,7 +3,6 @@ name: Ansible CI
 
 on:
   push:
-    # Lance la CI si un projet ou le workflow est modifié.
     paths:
       - 'projets/**'
       - '.github/workflows/ansible-ci.yml'
@@ -16,39 +15,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          # Récupère l'historique complet pour permettre le git diff.
           fetch-depth: 0
 
       - name: Detect changed project
         id: project
         run: |
-          # Récupère les fichiers modifiés entre les deux commits.
           git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" > changed_files.txt
-
-          # Affiche les fichiers modifiés dans les logs.
           cat changed_files.txt
-
-          # Cherche un fichier appartenant à un projet Ansible.
-          # || true évite que grep fasse échouer le step si aucun projet n'est trouvé.
           PROJECT=$(grep '^projets/' changed_files.txt | cut -d/ -f1-2 | head -n1 || true)
-
-          # Transmet le chemin du projet aux étapes suivantes.
           echo "path=$PROJECT" >> "$GITHUB_OUTPUT"
 
       - name: Install YAML lint
         run: |
-          # Installe yamllint sur le runner GitHub.
           python3 -m pip install yamllint
 
       - name: YAML Lint
         run: |
-          # Ignore le lint si aucun projet Ansible n'a été modifié.
           if [ -z "${{ steps.project.outputs.path }}" ]; then
             echo "No Ansible project changed. Skipping yamllint."
             exit 0
           fi
 
-          # Recherche uniquement les fichiers YAML du projet détecté.
           find "${{ github.workspace }}/${{ steps.project.outputs.path }}" \
             -type f \( -name "*.yml" -o -name "*.yaml" \) \
             -print0 |
