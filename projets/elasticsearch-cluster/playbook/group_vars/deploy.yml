@@ -6,7 +6,7 @@
     - name: install docker python for Ansible
       pip: name=docker-py
   tasks:
-    - name: Apache container
+    - name: Apache docker
       docker_container:
         name: "WebApp"
         image: "httpd"
