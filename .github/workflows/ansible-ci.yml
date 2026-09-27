@@ -40,3 +40,18 @@ jobs:
             -type f \( -name "*.yml" -o -name "*.yaml" \) \
             -print0 |
           xargs -0 -r yamllint
+
+      - name: Install Ansible lint
+        run: |
+          python3 -m pip install ansible-lint
+
+      - name: Ansible Lint
+        run: |
+          if [ -z "${{ steps.project.outputs.path }}" ]; then
+            echo "No Ansible project changed. Skipping ansible-lint."
+            exit 0
+          fi
+
+          cd "${{ github.workspace }}/${{ steps.project.outputs.path }}"
+
+          ansible-lint .
