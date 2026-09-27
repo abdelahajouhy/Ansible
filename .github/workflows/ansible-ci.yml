@@ -26,4 +26,14 @@ jobs:
       - name: Install YAML lint
         run: |
             python3 -m pip install yamllint
-            yamllint "${{ github.workspace }}/${{ steps.project.outputs.path}}/"
+      
+      - name: YAML Lint
+        run: |
+            if [ -z "${{ steps.project.outputs.path }}" ]; then
+              echo "No Ansible project changed. Skipping yamllint."
+              exit 0
+            fi
+            find "${{ github.workspace }}/${{ steps.project.outputs.path }}" \
+              -type f \( -name "*.yml" -o -name "*.yaml" \) \
+              -print0 |
+            xargs -0 -r yamllint
