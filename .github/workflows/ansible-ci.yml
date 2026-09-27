@@ -1,6 +1,11 @@
 ---
 name: Ansible CI
-on: [push]
+on: 
+  push:
+    paths:
+      - 'projets/**'
+      - '.github/workflows/ansible-ci.yml'
+
 jobs:
   ansible-ci:
     runs-on: ubuntu-24.04
@@ -8,11 +13,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Check Python
+      - name: Detect changed project
+        id: project
         run: |
-            python3 --version
+          git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" > changed_files.txt
+          cat changed_files.txt
+          PROJECT=$(grep '^projets/' changed_files.txt | cut -d/ -f1-2 | head -n1)
+          echo "path=$PROJECT" >> "$GITHUB_OUTPUT"
 
       - name: Install YAML lint
         run: |
             python3 -m pip install yamllint
-            yamllint ${{ github.workspace }}/projets/
+            yamllint "${{ github.workspace }}/${{ steps.project.outputs.path}}/"
