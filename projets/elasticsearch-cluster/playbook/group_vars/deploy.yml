@@ -1,6 +1,5 @@
 ---
-# Modification volontaire pour tester la CI.
-- name: "Apache installation with Docker"
+- name: "Apache install with Docker"
   hosts: prod
   pre_tasks:
     - name: install docker python for Ansible
