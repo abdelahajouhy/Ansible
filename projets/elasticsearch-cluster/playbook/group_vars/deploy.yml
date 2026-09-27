@@ -11,4 +11,3 @@
         name: "WebApp"
         image: "httpd"
         ports: "80:80"
-        
