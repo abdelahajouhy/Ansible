@@ -7,5 +7,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Display runner information
-        run: hostname -a
+
+      - name: Check Python
+        run: |
+            python3 --version
+
+      - name: Install YAML lint
+        run: |
+            python3 -m pip install yamllint
+            yamllint .
