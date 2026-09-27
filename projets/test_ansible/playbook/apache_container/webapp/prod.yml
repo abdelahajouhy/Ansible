@@ -1,9 +1,0 @@
-all:
-  vars: ansible_ssh_common_args='-o StrictHostKeyChecking=no'  
-
-prod:
-  hosts:
-    node2:
-      ansible_host: 10.0.3.4
-    node3:
-      ansible_host: 10.0.3.5
