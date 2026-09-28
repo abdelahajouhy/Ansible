@@ -1,0 +1,29 @@
+---
+name: Ansible CI - Security
+
+on:
+  push:
+    paths:
+      - 'projets/**'
+      - '.github/workflows/ansible-ci.yml'
+
+jobs:
+  ansible-ci:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check sensitive files
+        run: |
+          # Recherche les fichiers contenant potentiellement des clés,
+          # certificats ou keystores.
+          files=$(find projets -type f | grep -E '\.(key|pem|p12|pfx|jks|keystore)$' || true)
+
+          # Si un fichier est trouvé, affiche son chemin et bloque la CI.
+          if [ -n "$files" ]; then
+            echo "Sensitive file(s) detected:"
+            echo "$files"
+            exit 1
+          fi

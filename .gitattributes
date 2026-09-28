@@ -1,0 +1,2 @@
+# use the LF for all texts (issue if you work from WSL)
+* text=auto eol=lf
