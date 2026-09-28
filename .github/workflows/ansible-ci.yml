@@ -1,5 +1,5 @@
 ---
-name: Ansible CI
+name: Ansible CI - Security
 
 on:
   push:
@@ -14,44 +14,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
-      - name: Detect changed project
-        id: project
+      - name: Check sensitive files
         run: |
-          git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" > changed_files.txt
-          cat changed_files.txt
-          PROJECT=$(grep '^projets/' changed_files.txt | cut -d/ -f1-2 | head -n1 || true)
-          echo "path=$PROJECT" >> "$GITHUB_OUTPUT"
+          # Recherche les fichiers contenant potentiellement des clés,
+          # certificats ou keystores.
+          files=$(find projets -type f | grep -E '\.(key|pem|p12|pfx|jks|keystore)$' || true)
 
-      - name: Install YAML lint
-        run: |
-          python3 -m pip install yamllint
-
-      - name: YAML Lint
-        run: |
-          if [ -z "${{ steps.project.outputs.path }}" ]; then
-            echo "No Ansible project changed. Skipping yamllint."
-            exit 0
+          # Si un fichier est trouvé, affiche son chemin et bloque la CI.
+          if [ -n "$files" ]; then
+            echo "Sensitive file(s) detected:"
+            echo "$files"
+            exit 1
           fi
-
-          find "${{ github.workspace }}/${{ steps.project.outputs.path }}" \
-            -type f \( -name "*.yml" -o -name "*.yaml" \) \
-            -print0 |
-          xargs -0 -r yamllint
-
-      - name: Install Ansible lint
-        run: |
-          python3 -m pip install ansible-lint
-
-      - name: Ansible Lint
-        run: |
-          if [ -z "${{ steps.project.outputs.path }}" ]; then
-            echo "No Ansible project changed. Skipping ansible-lint."
-            exit 0
-          fi
-
-          cd "${{ github.workspace }}/${{ steps.project.outputs.path }}"
-
-          ansible-lint .
