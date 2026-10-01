@@ -1,0 +1,32 @@
+# ============================ Kibana ============================
+server.name: "{{ inventory_hostname }}"
+server.host: "{{ kibana_server_host }}"
+server.port: {{ kibana_server_port }}
+
+# ========================= Elasticsearch ========================
+elasticsearch.hosts:
+{% for host in kibana_elasticsearch_hosts %}
+  - "{{ host }}"
+{% endfor %}
+elasticsearch.username: "{{ kibana_elasticsearch_username }}"
+# elasticsearch.password : stocké dans le keystore Kibana
+{% if kibana_elasticsearch_ssl_ca is defined %}
+elasticsearch.ssl.certificateAuthorities:
+  - "{{ kibana_elasticsearch_ssl_ca }}"
+{% endif %}
+
+# ============================ Paths =============================
+path.data: "{{ kibana_app_dir }}/data"
+
+# ============================ Logging ===========================
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: "{{ kibana_log_dir }}/kibana.log"
+      layout:
+        type: json
+  root:
+    appenders:
+      - default
+      - file

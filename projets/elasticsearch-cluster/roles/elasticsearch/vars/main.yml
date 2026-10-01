@@ -1,0 +1,3 @@
+---
+elasticsearch_http_scheme: "{{ 'https' if (elasticsearch_security_enabled | bool and elasticsearch_http_ssl_enable | bool) else 'http' }}"
+elasticsearch_base_url: "{{ elasticsearch_http_scheme }}://{{ elasticsearch_network_host }}:{{ elasticsearch_http_port }}"

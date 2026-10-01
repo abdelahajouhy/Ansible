@@ -1,0 +1,5 @@
+---
+- name: Import storage tasks
+  ansible.builtin.import_tasks: storage.yml
+  tags:
+    - storage

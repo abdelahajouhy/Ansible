@@ -1,0 +1,7 @@
+---
+- name: Baseline servres onfigurations
+  hosts: all
+  become: true
+  become_user: root
+  roles:
+    - baseline

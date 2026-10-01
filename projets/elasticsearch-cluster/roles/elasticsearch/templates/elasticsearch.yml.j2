@@ -1,0 +1,61 @@
+################################################################################
+# ======================== Elasticsearch Configuration =========================
+########################### AJOUHY ABDELAH #####################################
+
+# ---------------------------------- Cluster -----------------------------------
+cluster.name: "{{ elasticsearch_cluster_name }}"
+cluster.routing.allocation.awareness.attributes: "{{ elasticsearch_allocation_awareness_attributes }}"
+
+# ------------------------------------ Node ------------------------------------
+node.name: "{{ elasticsearch_node_name }}"
+
+node.roles:
+{% for role in elasticsearch_node_roles %}
+  - "{{ role }}"
+{% endfor %}
+
+node.attr.rack_id: "{{ elasticsearch_node_attr_rack_id }}"
+
+# ----------------------------------- Paths ------------------------------------
+path.data: "{{ elasticsearch_path_data }}"
+path.logs: "{{ elasticsearch_path_logs }}"
+
+# ----------------------------------- Memory -----------------------------------
+bootstrap.memory_lock: {{ elasticsearch_memory_lock | default(false) | lower }}
+
+# ---------------------------------- Network -----------------------------------
+network.host: "{{ elasticsearch_network_host }}"
+http.port: {{ elasticsearch_http_port }}
+
+# --------------------------------- Discovery ----------------------------------
+{% if elasticsearch_single_node | default(false) | bool %}
+discovery.type: single-node
+{% else %}
+discovery.seed_hosts:
+{% for seed in elasticsearch_discovery_seed_hosts %}
+  - "{{ seed }}"
+{% endfor %}
+cluster.initial_master_nodes:
+{% for node in elasticsearch_cluster_initial_master_nodes %}
+  - "{{ node }}"
+{% endfor %}
+{% endif %}
+
+# ---------------------------------- Various -----------------------------------
+action.destructive_requires_name: true
+
+# ---------------------------------- Security ----------------------------------
+xpack.security.enabled: {{ elasticsearch_security_enabled | default(false) | lower }}
+xpack.security.autoconfiguration.enabled: false
+{% if elasticsearch_security_enabled | default(false) | bool %}
+{% if elasticsearch_transport_ssl_enable | default(false) | bool %}
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: {{ elasticsearch_transport_ssl_verification_mode }}
+xpack.security.transport.ssl.keystore.path: "{{ app_dir }}/config/certs/transport.p12"
+xpack.security.transport.ssl.truststore.path: "{{ app_dir }}/config/certs/transport.p12"
+{% endif %}
+{% if elasticsearch_http_ssl_enable | default(false) | bool %}
+xpack.security.http.ssl.enabled: true
+xpack.security.http.ssl.keystore.path: "{{ app_dir }}/config/certs/http.p12"
+{% endif %}
+{% endif %}

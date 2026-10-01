@@ -1,0 +1,6 @@
+---
+- name: Kibana
+  hosts: kibana
+  become: true
+  roles:
+    - kibana

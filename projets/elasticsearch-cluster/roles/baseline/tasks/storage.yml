@@ -1,0 +1,32 @@
+---
+- name: Create application mount point
+  ansible.builtin.file:
+    path: "{{ global_dir_app }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create log mount point
+  ansible.builtin.file:
+    path: "{{ global_dir_log }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Mount application filesystem
+  ansible.posix.mount:
+    path: "{{ global_dir_app }}"
+    src: "/dev/ubuntu-vg/lv_apps"
+    fstype: xfs
+    opts: "defaults,noatime,nodev,nosuid"
+    state: mounted
+
+- name: Mount log filesystem
+  ansible.posix.mount:
+    path: "{{ global_dir_log }}"
+    src: "/dev/ubuntu-vg/lv_log"
+    fstype: xfs
+    opts: "defaults,noatime,nodev,nosuid,noexec"
+    state: mounted

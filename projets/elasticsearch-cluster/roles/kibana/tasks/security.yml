@@ -1,0 +1,73 @@
+---
+- name: Récupérer les credentials Kibana depuis Vault
+  ansible.builtin.uri:
+    url: "{{ vault_url }}/v1/kv/data/secret/kibana/dev"
+    method: GET
+    headers:
+      X-Vault-Token: "{{ vault_token }}"
+    return_content: true
+    status_code: 200
+  register: vault_kibana_credentials
+  no_log: false
+
+- name: Récupérer le mot de passe kibana_system
+  ansible.builtin.set_fact:
+    kibana_system_password: "{{ vault_kibana_credentials.json.data.data.kibana_system }}"
+  no_log: false
+
+- name: Tester l'authentification kibana_system
+  ansible.builtin.uri:
+    url: "{{ kibana_elasticsearch_hosts[0] }}/_security/_authenticate"
+    method: GET
+    user: "{{ kibana_elasticsearch_username }}"
+    password: "{{ kibana_system_password }}"
+    force_basic_auth: true
+    return_content: true
+    status_code: 200
+  register: kibana_system_auth
+  no_log: false
+
+- name: Afficher le résultat de l'authentification
+  ansible.builtin.debug:
+    msg:
+      username: "{{ kibana_system_auth.json.username }}"
+      roles: "{{ kibana_system_auth.json.roles }}"
+
+- name: Vérifier si le keystore existe
+  ansible.builtin.stat:
+    path: "{{ kibana_app_dir }}/config/kibana.keystore"
+  register: kibana_keystore
+
+- name: Créer le keystore
+  ansible.builtin.command:
+    argv:
+      - runuser
+      - -u
+      - "{{ kibana_user_owner }}"
+      - --
+      - "{{ kibana_app_dir }}/bin/kibana-keystore"
+      - create
+  environment:
+    KBN_PATH_CONF: "{{ kibana_app_dir }}/config"
+  when: not kibana_keystore.stat.exists
+  changed_when: true
+
+- name: Ajouter le mot de passe elasticsearch au keystore
+  ansible.builtin.command:
+    argv:
+      - runuser
+      - -u
+      - "{{ kibana_user_owner }}"
+      - --
+      - "{{ kibana_app_dir }}/bin/kibana-keystore"
+      - add
+      - elasticsearch.password
+      - --stdin
+      - --force
+    stdin: "{{ kibana_system_password }}"
+  environment:
+    KBN_PATH_CONF: "{{ kibana_app_dir }}/config"
+  when: (not kibana_keystore.stat.exists) or (kibana_update_password | default(false) | bool)
+  changed_when: true
+  no_log: false
+  notify: Restart kibana

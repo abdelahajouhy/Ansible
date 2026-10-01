@@ -1,0 +1,7 @@
+---
+- name: Elasticsearch configurations
+  hosts: elasticsearch
+  become: true
+  serial: 1
+  roles:
+    - elasticsearch

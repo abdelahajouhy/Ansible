@@ -1,0 +1,25 @@
+[Unit]
+Description=Elasticsearch
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ user_owner }}
+Group={{ user_group }}
+Environment=ES_HOME={{ app_dir }}
+Environment=ES_PATH_CONF={{ app_dir }}/config
+ExecStart={{ app_dir }}/bin/elasticsearch
+LimitNOFILE=65535
+LimitNPROC=4096
+LimitMEMLOCK=infinity
+LimitAS=infinity
+LimitFSIZE=infinity
+TimeoutStartSec=180
+TimeoutStopSec=0
+KillMode=process
+KillSignal=SIGTERM
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
