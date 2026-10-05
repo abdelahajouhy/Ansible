@@ -2,7 +2,7 @@
 # ============================ ELASTIC ============================
 - name: Récupérer les credentials Elasticsearch depuis Vault
   ansible.builtin.uri:
-    url: "{{ vault_url }}/v1/kv/data/secret/elasticsearch/dev/credentials"
+    url: "{{ vault_url }}/v1/kv/data/secret/elasticsearch/{{ env }}/elastic"
     method: GET
     headers:
       X-Vault-Token: "{{ vault_token }}"
@@ -26,16 +26,17 @@
     password: "{{ elastic_password }}"
     force_basic_auth: true
     status_code: [200, 401]
+    ca_path: "{{ elasticsearch_path_certs }}/ca_chain.pem"
   register: elastic_auth_check
   run_once: true
   no_log: false
 
 - name: Définir le mot de passe elastic depuis Vault
   ansible.builtin.command:
-    cmd: "runuser -u {{ user_owner }} -- {{ app_dir }}/bin/elasticsearch-reset-password -u elastic -i -b --url {{ elasticsearch_base_url }}"
+    cmd: "runuser -u {{ elasticsearch_user_owner }} -- {{ elasticsearch_app_dir }}/bin/elasticsearch-reset-password -u elastic -i -b --url {{ elasticsearch_base_url }}"
     stdin: "{{ elastic_password }}\n{{ elastic_password }}"
   environment:
-    ES_PATH_CONF: "{{ app_dir }}/config"
+    ES_PATH_CONF: "{{ elasticsearch_app_dir }}/config"
   run_once: true
   changed_when: true
   no_log: false
@@ -51,6 +52,7 @@
     force_basic_auth: true
     return_content: true
     status_code: 200
+    ca_path: "{{ elasticsearch_path_certs }}/ca_chain.pem"
   register: cluster_health
   until: cluster_health.status == 200
   retries: 15
@@ -61,7 +63,7 @@
 # ========================= KIBANA_SYSTEM =========================
 - name: Récupérer les credentials Kibana depuis Vault
   ansible.builtin.uri:
-    url: "{{ vault_url }}/v1/kv/data/secret/kibana/dev"
+    url: "{{ vault_url }}/v1/kv/data/secret/kibana/{{ env }}"
     method: GET
     headers:
       X-Vault-Token: "{{ vault_token }}"
@@ -88,6 +90,7 @@
     body:
       password: "{{ kibana_system_password }}"
     status_code: 200
+    ca_path: "{{ elasticsearch_path_certs }}/ca_chain.pem"
   run_once: true
   no_log: false
 

@@ -21,10 +21,11 @@
     - "{{ elasticsearch_app_dir }}"
     - "{{ elasticsearch_log_dir }}"
     - "{{ elasticsearch_path_data }}"
+    - "{{ elasticsearch_path_certs }}"
 
 - name: Extraire Elasticsearch
   ansible.builtin.unarchive:
-    src: "{{ download_url }}"
+    src: "{{ elasticsearch_download_url }}"
     dest: "{{ elasticsearch_app_dir }}"
     remote_src: true
     owner: "{{ elasticsearch_user_owner }}"

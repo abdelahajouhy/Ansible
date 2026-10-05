@@ -5,11 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User={{ user_owner }}
-Group={{ user_group }}
-Environment=ES_HOME={{ app_dir }}
-Environment=ES_PATH_CONF={{ app_dir }}/config
-ExecStart={{ app_dir }}/bin/elasticsearch
+User={{ elasticsearch_user_owner }}
+Group={{ elasticsearch_user_group }}
+Environment=ES_HOME={{ elasticsearch_app_dir }}
+Environment=ES_PATH_CONF={{ elasticsearch_app_dir }}/config
+ExecStart={{ elasticsearch_app_dir }}/bin/elasticsearch
 LimitNOFILE=65535
 LimitNPROC=4096
 LimitMEMLOCK=infinity

@@ -1,0 +1,71 @@
+---
+- name: Create a new certificate
+  block:
+    - name: Read the pki_int 
+      community.hashi_vault.vault_read:
+        url: "{{ vault_url }}"
+        path: "{{ vault_pki_engine }}/roles/{{ vault_pki_role_name }}"
+        auth_method: token
+        token: "{{ vault_token }}"
+      register: pki_int
+
+    - name: Generate a certificate with an existing token
+      community.hashi_vault.vault_pki_generate_certificate:
+        role_name: "{{ vault_pki_role_name }}"
+        engine_mount_point: "{{ vault_pki_engine }}"
+        common_name: "{{ inventory_hostname }}.{{ pki_int.data.data.allowed_domains[0]}}"
+        ttl: 760h
+        alt_names:
+          - "{{ inventory_hostname }}.{{ pki_int.data.data.allowed_domains[0]}}"
+        ip_sans: 
+          - "{{ ansible_host }}"
+        url: "{{ vault_url }}"
+        auth_method: token
+        token: "{{ vault_token }}"
+      register: certificate_data
+
+    - name: Write secret to Vault using key value V2 engine
+      community.hashi_vault.vault_write:
+        path: "kv/data/secret/elasticsearch/prod/certificates/{{ inventory_hostname }}"
+        url: "{{ vault_url }}"
+        auth_method: token
+        token: "{{ vault_token }}"
+        data:
+          data:
+            certificate: "{{ certificate_data.data.data.certificate }}"
+            private_key: "{{ certificate_data.data.data.private_key }}"
+            ca_chain: "{{ certificate_data.data.data.ca_chain }}"
+
+  when: generate_tls | default(false) | bool
+
+- name: Read certificate from Vault KV
+  community.hashi_vault.vault_read:
+    path: "kv/data/secret/elasticsearch/prod/certificates/{{ inventory_hostname }}"
+    url: "{{ vault_url }}"
+    auth_method: token
+    token: "{{ vault_token }}"
+  register: kv_certificate
+
+- name: Écrire le certificat
+  ansible.builtin.copy:
+    content: "{{ kv_certificate.data.data.data.certificate }}"
+    dest: "{{ elasticsearch_path_certs }}/certificate.pem"
+    owner: "{{ elasticsearch_user_owner }}"
+    group: "{{ elasticsearch_user_group }}"
+    mode: "0640"
+
+- name: Écrire la clé privée
+  ansible.builtin.copy:
+    content: "{{ kv_certificate.data.data.data.private_key }}"
+    dest: "{{ elasticsearch_path_certs }}/private.key"
+    owner: "{{ elasticsearch_user_owner }}"
+    group: "{{ elasticsearch_user_group }}"
+    mode: "0640"
+
+- name: Écrire la CA
+  ansible.builtin.copy:
+    content: "{{ kv_certificate.data.data.data.ca_chain | join('\n') }}"
+    dest: "{{ elasticsearch_path_certs }}/ca_chain.pem"
+    owner: "{{ elasticsearch_user_owner }}"
+    group: "{{ elasticsearch_user_group }}"
+    mode: "0640"

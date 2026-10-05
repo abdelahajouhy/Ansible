@@ -1,0 +1,26 @@
+---
+- name: Installer firewalld
+  ansible.builtin.apt:
+    name: firewalld
+    state: present
+    update_cache: true
+
+- name: Démarrer et activer firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Autoriser Elasticsearch HTTP
+  ansible.posix.firewalld:
+    port: "{{ elasticsearch_http_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: Autoriser Elasticsearch transport
+  ansible.posix.firewalld:
+    port: 9300/tcp
+    permanent: true
+    state: enabled
+    immediate: true

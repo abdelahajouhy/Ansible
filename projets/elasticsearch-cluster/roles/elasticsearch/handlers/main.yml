@@ -7,3 +7,26 @@
   ansible.builtin.systemd:
     name: elasticsearch
     state: restarted
+
+- name: Attendre que Elasticsearch écoute
+  ansible.builtin.wait_for:
+    host: "{{ elasticsearch_network_host }}"
+    port: "{{ elasticsearch_http_port }}"
+    delay: 2
+    timeout: 120
+  listen: Restart Elasticsearch
+
+- name: Wait for Elasticsearch cluster
+  ansible.builtin.uri:
+    url: "{{ elasticsearch_base_url }}/_cluster/health"
+    return_content: true
+    status_code: [200, 503]
+    ca_path: "{{ elasticsearch_path_certs }}/ca_chain.pem"
+  register: elasticsearch_health
+  until: >
+    elasticsearch_health.status == 200 and
+    elasticsearch_health.json.number_of_nodes == (groups['elasticsearch'] | length) and
+    elasticsearch_health.json.status == 'green'
+  retries: 30
+  delay: 5
+  listen: Restart Elasticsearch

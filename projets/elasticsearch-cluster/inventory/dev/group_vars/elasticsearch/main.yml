@@ -7,11 +7,10 @@ elasticsearch_log_dir: "{{ global_dir_log }}/elasticsearch"
 
 elasticsearch_version: "9.5.4"
 download_url: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
-archive_name: "elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
 
 elasticsearch_cluster_name: "cluster-databde"
-elasticsearch_path_data: "{{ app_dir }}/data"
-elasticsearch_path_logs: "{{ log_dir }}"
+elasticsearch_path_data: "{{ elasticsearch_app_dir }}/data"
+elasticsearch_path_logs: "{{ elasticsearch_log_dir }}"
 
 elasticsearch_http_port: 9200
 

@@ -6,33 +6,14 @@
     owner: root
     group: root
     mode: "0644"
-  notify: 
+  notify:
     - Reload systemd
     - Restart Elasticsearch
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
 
-- name: Enable and start Elasticsearch
+- name: Enable Elasticsearch at boot
   ansible.builtin.systemd:
     name: elasticsearch
     enabled: true
-    state: started
-
-- name: Attendre que Elasticsearch écoute
-  ansible.builtin.wait_for:
-    host: "{{ elasticsearch_network_host }}"
-    port: "{{ elasticsearch_http_port }}"
-    delay: 2
-    timeout: 120
-
-- name: Attendre qu'Elasticsearch soit opérationnel
-  ansible.builtin.uri:
-    url: "{{ elasticsearch_base_url }}/_cluster/health"
-    method: GET
-    validate_certs: false
-    status_code: [200, 401]
-  register: elasticsearch_ready
-  retries: 30
-  delay: 2
-  until: elasticsearch_ready.status in [200, 401]

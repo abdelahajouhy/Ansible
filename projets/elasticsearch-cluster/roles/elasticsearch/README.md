@@ -1,38 +1,90 @@
-Role Name
-=========
+# Elasticsearch Ansible Role
 
-A brief description of the role goes here.
+## Role Name
 
-Requirements
-------------
+`elasticsearch`
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+An Ansible role for deploying and configuring Elasticsearch nodes in a controlled environment.
 
-Role Variables
---------------
+## Requirements
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The role requires:
 
-Dependencies
-------------
+* Ansible
+* A supported Linux distribution
+* Python 3 on managed nodes
+* The Python dependencies required by the HashiCorp Vault Ansible integration
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+The Vault-related Python dependencies are installed by the baseline configuration and are required when the role retrieves secrets from Vault.
 
-Example Playbook
-----------------
+## Role Variables
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+The role provides variables to configure:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+* Elasticsearch installation and directories
+* Cluster and node configuration
+* Network configuration
+* JVM settings
+* Security settings
+* HTTP and transport TLS
+* Certificate deployment
+* Firewall configuration
+* Service management
 
-License
--------
+TLS generation is controlled independently from TLS deployment, allowing existing certificates to be reused without unnecessary regeneration.
 
-BSD
+Sensitive values are provided through external secret management and are not stored in the role.
 
-Author Information
-------------------
+## Dependencies
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+No external Ansible Galaxy roles are required.
+
+The role can use:
+
+* HashiCorp Vault for secret and certificate management
+* Ansible Vault for Ansible-managed sensitive variables
+* The baseline role for common system prerequisites
+
+## TLS
+
+TLS is used to secure both Elasticsearch transport and HTTP communications.
+
+The implementation provides:
+
+* Transport TLS between Elasticsearch nodes
+* HTTPS for the Elasticsearch API
+* A dedicated certificate for each Elasticsearch node
+* Centralized certificate management through HashiCorp Vault
+* Automated certificate deployment through Ansible
+* Certificate authority validation
+
+Certificates and private keys are retrieved from the external secret-management system and deployed to the Elasticsearch nodes.
+
+Private keys, certificates, credentials and Vault tokens must not be committed to the Git repository.
+
+Certificate generation and certificate deployment are handled independently. Existing certificates can therefore be reused during normal deployments.
+
+## Security
+
+Elasticsearch security features can be enabled through the role configuration.
+
+Security-related credentials are retrieved from external secret management rather than being hard-coded in the role.
+
+## Example Playbook
+
+```yaml
+- name: Deploy Elasticsearch
+  hosts: elasticsearch
+  become: true
+
+  roles:
+    - role: elasticsearch
+```
+
+## License
+
+Internal / project-specific.
+
+## Author Information
+
+Abdelah AJOUHY.

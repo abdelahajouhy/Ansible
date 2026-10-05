@@ -1,7 +1,7 @@
 ---
-- name: Elasticsearch configurations
+- name: Elasticsearch deploy
   hosts: elasticsearch
   become: true
-  serial: 1
+  #serial: 1 # for rolling restart (configiguration update etc...), remove it at the bootsrap server ! 
   roles:
     - elasticsearch

@@ -35,10 +35,12 @@ discovery.seed_hosts:
 {% for seed in elasticsearch_discovery_seed_hosts %}
   - "{{ seed }}"
 {% endfor %}
+{% if elasticsearch_cluster_bootstrap | default(false) | bool %}
 cluster.initial_master_nodes:
 {% for node in elasticsearch_cluster_initial_master_nodes %}
   - "{{ node }}"
 {% endfor %}
+{% endif %}
 {% endif %}
 
 # ---------------------------------- Various -----------------------------------
@@ -47,15 +49,22 @@ action.destructive_requires_name: true
 # ---------------------------------- Security ----------------------------------
 xpack.security.enabled: {{ elasticsearch_security_enabled | default(false) | lower }}
 xpack.security.autoconfiguration.enabled: false
+
 {% if elasticsearch_security_enabled | default(false) | bool %}
 {% if elasticsearch_transport_ssl_enable | default(false) | bool %}
 xpack.security.transport.ssl.enabled: true
 xpack.security.transport.ssl.verification_mode: {{ elasticsearch_transport_ssl_verification_mode }}
-xpack.security.transport.ssl.keystore.path: "{{ app_dir }}/config/certs/transport.p12"
-xpack.security.transport.ssl.truststore.path: "{{ app_dir }}/config/certs/transport.p12"
+xpack.security.transport.ssl.key: "{{ elasticsearch_path_certs }}/private.key"
+xpack.security.transport.ssl.certificate: "{{ elasticsearch_path_certs }}/certificate.pem"
+xpack.security.transport.ssl.certificate_authorities:
+  - "{{ elasticsearch_path_certs }}/ca_chain.pem"
 {% endif %}
+
 {% if elasticsearch_http_ssl_enable | default(false) | bool %}
 xpack.security.http.ssl.enabled: true
-xpack.security.http.ssl.keystore.path: "{{ app_dir }}/config/certs/http.p12"
+xpack.security.http.ssl.key: "{{ elasticsearch_path_certs }}/private.key"
+xpack.security.http.ssl.certificate: "{{ elasticsearch_path_certs }}/certificate.pem"
+xpack.security.http.ssl.certificate_authorities:
+  - "{{ elasticsearch_path_certs }}/ca_chain.pem"
 {% endif %}
 {% endif %}

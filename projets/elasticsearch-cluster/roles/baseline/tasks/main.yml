@@ -1,4 +1,9 @@
 ---
+- name: Import tools tasks
+  ansible.builtin.import_tasks: tools.yml
+  tags:
+    - tools
+
 - name: Import storage tasks
   ansible.builtin.import_tasks: storage.yml
   tags:

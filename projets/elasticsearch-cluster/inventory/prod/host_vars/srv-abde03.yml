@@ -1,0 +1,8 @@
+---
+elasticsearch_node_name: "{{ inventory_hostname }}"
+elasticsearch_node_roles:
+  - master
+  - voting_only
+
+elasticsearch_network_host: "{{ ansible_default_ipv4.address }}"
+elasticsearch_node_attr_rack_id: "zone3"

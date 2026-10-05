@@ -1,5 +1,6 @@
 ---
 - ansible.builtin.import_tasks: install.yml
+- ansible.builtin.import_tasks: firewall.yml
 - ansible.builtin.import_tasks: config.yml
-- ansible.builtin.import_tasks: security.yml
 - ansible.builtin.import_tasks: systemd.yml
+- ansible.builtin.import_tasks: security.yml
