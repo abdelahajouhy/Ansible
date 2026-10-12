@@ -111,7 +111,7 @@ receivers:
     tls:
       ca_file: "{{ opentelemetry_app_dir }}/ca_chain.pem"
     nodes: ["_local"]
-    username: "{{ elasticsearch_monitori_user }}"
+    username: "{{ elasticsearch_monitoring_user }}"
     password: otel_monitor
     collection_interval: 10s
 
