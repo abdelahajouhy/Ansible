@@ -1,5 +1,5 @@
 ---
-- name: Déployer l'unit systemd Kibana
+- name: Deploy Kibana systemd unit
   ansible.builtin.template:
     src: kibana.service.j2
     dest: /etc/systemd/system/kibana.service
@@ -13,20 +13,20 @@
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
 
-- name: Activer et démarrer Kibana
+- name: Enable and Start Kibana service 
   ansible.builtin.systemd:
     name: kibana
     enabled: true
     state: started
 
-- name: Attendre que Kibana écoute
+- name: Wait for Kibana is up
   ansible.builtin.wait_for:
     port: "{{ kibana_server_port }}"
     host: "{{ ansible_default_ipv4.address }}"
     delay: 5
     timeout: 180
 
-- name: Vérifier que Kibana répond
+- name: Check Kibana status
   ansible.builtin.uri:
     url: "https://{{ ansible_default_ipv4.address }}:{{ kibana_server_port }}/api/status"
     method: GET

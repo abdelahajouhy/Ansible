@@ -1,17 +1,17 @@
 ---
-- name: Installer firewalld
+- name: Firewalld install
   ansible.builtin.apt:
     name: firewalld
     state: present
     update_cache: true
 
-- name: Démarrer et activer firewalld
+- name: Enable and start firewalld service
   ansible.builtin.systemd:
     name: firewalld
     state: started
     enabled: true
 
-- name: Autoriser Kibana
+- name: Firewalld rule for HTTP Kibana ports
   ansible.posix.firewalld:
     port: "{{ kibana_server_port }}/tcp"
     permanent: true
