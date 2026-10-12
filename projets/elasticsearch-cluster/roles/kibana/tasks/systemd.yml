@@ -28,7 +28,7 @@
 
 - name: Vérifier que Kibana répond
   ansible.builtin.uri:
-    url: "http://{{ ansible_default_ipv4.address }}:{{ kibana_server_port }}/api/status"
+    url: "https://{{ ansible_default_ipv4.address }}:{{ kibana_server_port }}/api/status"
     method: GET
     status_code: [200, 401]
   register: kibana_ready

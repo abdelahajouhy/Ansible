@@ -1,7 +1,7 @@
 ---
-- name: Récupérer les credentials Kibana depuis Vault
+- name: Retrieve Kibana credentials from Vault
   ansible.builtin.uri:
-    url: "{{ vault_url }}/v1/kv/data/secret/kibana/dev"
+    url: "{{ vault_url }}/v1/kv/data/secret/kibana/{{ env }}/kibana_system"
     method: GET
     headers:
       X-Vault-Token: "{{ vault_token }}"
@@ -10,16 +10,17 @@
   register: vault_kibana_credentials
   no_log: false
 
-- name: Récupérer le mot de passe kibana_system
+- name: Retrieve kibana_system username and password
   ansible.builtin.set_fact:
-    kibana_system_password: "{{ vault_kibana_credentials.json.data.data.kibana_system }}"
+    kibana_system_username: "{{ vault_kibana_credentials.json.data.data.username }}"
+    kibana_system_password: "{{ vault_kibana_credentials.json.data.data.password }}"
   no_log: false
 
-- name: Tester l'authentification kibana_system
+- name: Test kibana_system authentication
   ansible.builtin.uri:
     url: "{{ kibana_elasticsearch_hosts[0] }}/_security/_authenticate"
     method: GET
-    user: "{{ kibana_elasticsearch_username }}"
+    user: "{{ kibana_system_username }}"
     password: "{{ kibana_system_password }}"
     force_basic_auth: true
     return_content: true
@@ -27,18 +28,12 @@
   register: kibana_system_auth
   no_log: false
 
-- name: Afficher le résultat de l'authentification
-  ansible.builtin.debug:
-    msg:
-      username: "{{ kibana_system_auth.json.username }}"
-      roles: "{{ kibana_system_auth.json.roles }}"
-
-- name: Vérifier si le keystore existe
+- name: Check if the keystore exists
   ansible.builtin.stat:
     path: "{{ kibana_app_dir }}/config/kibana.keystore"
   register: kibana_keystore
 
-- name: Créer le keystore
+- name: Create the keystore
   ansible.builtin.command:
     argv:
       - runuser
@@ -52,7 +47,7 @@
   when: not kibana_keystore.stat.exists
   changed_when: true
 
-- name: Ajouter le mot de passe elasticsearch au keystore
+- name: Add the Elasticsearch password to the keystore
   ansible.builtin.command:
     argv:
       - runuser

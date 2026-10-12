@@ -1,18 +1,18 @@
 ---
-- name: Créer le groupe kibana
+- name: Linux group creation 
   ansible.builtin.group:
     name: "{{ kibana_user_group }}"
     system: true
 
-- name: Créer l'utilisateur kibana
+- name: Linux user creation
   ansible.builtin.user:
     name: "{{ kibana_user_owner }}"
     group: "{{ kibana_user_group }}"
     shell: /sbin/nologin
-    system: true
     create_home: false
+    system: true
 
-- name: Créer les répertoires
+- name: Directories creation
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -22,9 +22,10 @@
   loop:
     - "{{ kibana_app_dir }}"
     - "{{ kibana_log_dir }}"
+    - "{{ kibana_certs_dir }}"
     - "{{ kibana_app_dir }}/data"
 
-- name: Extraire Kibana
+- name: Download and extract archive
   ansible.builtin.unarchive:
     src: "{{ kibana_download_url }}"
     dest: "{{ kibana_app_dir }}"
