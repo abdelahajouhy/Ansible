@@ -1,7 +1,4 @@
 ---
-- ansible.builtin.import_tasks: tools.yml
-  tags: [tools]
-
 - ansible.builtin.import_tasks: install.yml
   tags: [install]
 
@@ -19,3 +16,9 @@
 
 - ansible.builtin.import_tasks: security.yml
   tags: [security]
+
+- ansible.builtin.import_tasks: monitor.yml
+  tags: 
+    - monitor 
+    - never
+

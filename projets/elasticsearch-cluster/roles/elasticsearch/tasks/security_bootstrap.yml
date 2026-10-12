@@ -1,6 +1,5 @@
 ---
-# ============================ ELASTIC ============================
-- name: Récupérer les credentials Elasticsearch depuis Vault
+- name: Retrieve Elasticsearch credentials from Hvault
   ansible.builtin.uri:
     url: "{{ vault_url }}/v1/kv/data/secret/elasticsearch/{{ env }}/elastic"
     method: GET
@@ -12,26 +11,14 @@
   run_once: true
   no_log: false
 
-- name: Récupérer le mot de passe elastic
+- name: Retrieve the elastic secrets from Hvault (username and password)
   ansible.builtin.set_fact:
-    elastic_password: "{{ vault_elasticsearch_credentials.json.data.data.elastic }}"
+    elastic_username: "{{ vault_elasticsearch_credentials.json.data.data.username }}"
+    elastic_password: "{{ vault_elasticsearch_credentials.json.data.data.password }}"
   run_once: true
   no_log: false
 
-- name: Tester si le mot de passe elastic est déjà en place
-  ansible.builtin.uri:
-    url: "{{ elasticsearch_base_url }}/_cluster/health"
-    method: GET
-    user: elastic
-    password: "{{ elastic_password }}"
-    force_basic_auth: true
-    status_code: [200, 401]
-    ca_path: "{{ elasticsearch_path_certs }}/ca_chain.pem"
-  register: elastic_auth_check
-  run_once: true
-  no_log: false
-
-- name: Définir le mot de passe elastic depuis Vault
+- name: Reset the password to the internal Elasticsearch keystore
   ansible.builtin.command:
     cmd: "runuser -u {{ elasticsearch_user_owner }} -- {{ elasticsearch_app_dir }}/bin/elasticsearch-reset-password -u elastic -i -b --url {{ elasticsearch_base_url }}"
     stdin: "{{ elastic_password }}\n{{ elastic_password }}"
@@ -40,30 +27,27 @@
   run_once: true
   changed_when: true
   no_log: false
-  when: elastic_auth_check.status == 401
 
-# =========================== VALIDATION ===========================
-- name: Vérifier l'authentification elastic
+- name: Test and validation of the elastic user authentification
   ansible.builtin.uri:
     url: "{{ elasticsearch_base_url }}/_cluster/health"
     method: GET
-    user: elastic
+    user: "{{ elastic_username }}"
     password: "{{ elastic_password }}"
     force_basic_auth: true
     return_content: true
-    status_code: 200
+    status_code: [200, 401]
     ca_path: "{{ elasticsearch_path_certs }}/ca_chain.pem"
   register: cluster_health
   until: cluster_health.status == 200
-  retries: 15
+  retries: 30
   delay: 2
   run_once: true
   no_log: false
 
-# ========================= KIBANA_SYSTEM =========================
-- name: Récupérer les credentials Kibana depuis Vault
+- name: Retrieve Kibana credentials from Hvault
   ansible.builtin.uri:
-    url: "{{ vault_url }}/v1/kv/data/secret/kibana/{{ env }}"
+    url: "{{ vault_url }}/v1/kv/data/secret/kibana/{{ env }}/kibana_system"
     method: GET
     headers:
       X-Vault-Token: "{{ vault_token }}"
@@ -73,17 +57,18 @@
   run_once: true
   no_log: false
 
-- name: Récupérer le mot de passe kibana_system
+- name: Retrieve the Kibana secrets from Hvault (username and password)
   ansible.builtin.set_fact:
-    kibana_system_password: "{{ vault_kibana_credentials.json.data.data.kibana_system }}"
+    kibana_system_username: "{{ vault_kibana_credentials.json.data.data.username }}"
+    kibana_system_password: "{{ vault_kibana_credentials.json.data.data.password }}"
   run_once: true
   no_log: false
 
-- name: Définir le mot de passe kibana_system via l'API
+- name: Definition of the password kibana_system over the Elastic API
   ansible.builtin.uri:
     url: "{{ elasticsearch_base_url }}/_security/user/kibana_system/_password"
     method: POST
-    user: elastic
+    user: "{{ elastic_username }}"
     password: "{{ elastic_password }}"
     force_basic_auth: true
     body_format: json
@@ -94,8 +79,7 @@
   run_once: true
   no_log: false
 
-# ============================ RÉSUMÉ ============================
-- name: Afficher l'état du cluster
+- name: Cluster state
   ansible.builtin.debug:
     msg:
       cluster_name: "{{ cluster_health.json.cluster_name }}"

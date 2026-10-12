@@ -1,16 +1,17 @@
 ---
-- name: Créer le groupe
+- name: Linux group creation 
   ansible.builtin.group:
     name: "{{ elasticsearch_user_group }}"
 
-- name: Créer l'utilisateur
+- name: Linux user creation
   ansible.builtin.user:
     name: "{{ elasticsearch_user_owner }}"
     group: "{{ elasticsearch_user_group }}"
     shell: /sbin/nologin
+    create_home: false
     system: true
 
-- name: Créer les répertoires
+- name: Directories creation
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -23,7 +24,7 @@
     - "{{ elasticsearch_path_data }}"
     - "{{ elasticsearch_path_certs }}"
 
-- name: Extraire Elasticsearch
+- name: Download and extract archive
   ansible.builtin.unarchive:
     src: "{{ elasticsearch_download_url }}"
     dest: "{{ elasticsearch_app_dir }}"
@@ -33,7 +34,7 @@
     extra_opts: ["--strip-components=1"]
     creates: "{{ elasticsearch_app_dir }}/bin/elasticsearch"
 
-- name: vm.max_map_count
+- name: Elasticsearch memory map limit
   ansible.posix.sysctl:
     name: vm.max_map_count
     value: "262144"
