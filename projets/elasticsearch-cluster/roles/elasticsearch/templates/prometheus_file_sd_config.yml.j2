@@ -1,0 +1,7 @@
+---
+{% for host in groups['elasticsearch'] %}
+- targets: ["{{ hostvars[host].ansible_host }}:8889"]
+  labels:
+    host: "{{ host }}"
+    environment: "{{ env }}"
+{% endfor %}
