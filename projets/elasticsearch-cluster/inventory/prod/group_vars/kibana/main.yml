@@ -5,18 +5,21 @@ kibana_user_group: kibana
 
 kibana_app_dir: "{{ global_dir_app }}/kibana"
 kibana_log_dir: "{{ global_dir_log }}/kibana"
+kibana_certs_dir: "{{ kibana_app_dir }}/config/certs"
+
 kibana_download_url: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
 
 kibana_server_host: "0.0.0.0"
 kibana_server_port: 5601
 
-# URL d'Elasticsearch (HTTP tant que le TLS n'est pas activé)
+# URL d'Elasticsearch
 kibana_elasticsearch_hosts:
-  - "http://192.168.112.135:9200"
-  - "http://192.168.112.136:9200"
-  - "http://192.168.112.137:9200"
+  - "https://192.168.112.135:9200"
+  - "https://192.168.112.136:9200"
+  - "https://192.168.112.137:9200"
 
 kibana_elasticsearch_username: "kibana_system"
-
-# Pour plus tard, avec TLS :
-# kibana_elasticsearch_ssl_ca: "{{ kibana_app_dir }}/config/certs/http_ca.crt"
+kibana_security_enabled: true
+kibana_domain: "ajouhy.databde"
+kibana_max_old_space_size: 1024 # Tuning the memory size allocated to NodeJS. By default 2048 Mo ... I have only 8192 Mo  for all my clusters haha :D
+elasticsearch_heap: "512m"
