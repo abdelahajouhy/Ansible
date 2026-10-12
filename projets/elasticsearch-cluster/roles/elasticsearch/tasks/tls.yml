@@ -46,7 +46,7 @@
     token: "{{ vault_token }}"
   register: kv_certificate
 
-- name: Écrire le certificat
+- name: Certificate copy
   ansible.builtin.copy:
     content: "{{ kv_certificate.data.data.data.certificate }}"
     dest: "{{ elasticsearch_path_certs }}/certificate.pem"
@@ -54,7 +54,7 @@
     group: "{{ elasticsearch_user_group }}"
     mode: "0640"
 
-- name: Écrire la clé privée
+- name: Private key copy
   ansible.builtin.copy:
     content: "{{ kv_certificate.data.data.data.private_key }}"
     dest: "{{ elasticsearch_path_certs }}/private.key"
@@ -62,7 +62,7 @@
     group: "{{ elasticsearch_user_group }}"
     mode: "0640"
 
-- name: Écrire la CA
+- name: CA copy
   ansible.builtin.copy:
     content: "{{ kv_certificate.data.data.data.ca_chain | join('\n') }}"
     dest: "{{ elasticsearch_path_certs }}/ca_chain.pem"

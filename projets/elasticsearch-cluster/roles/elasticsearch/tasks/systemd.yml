@@ -13,7 +13,7 @@
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
 
-- name: Enable Elasticsearch at boot
+- name: Enable Elasticsearch service
   ansible.builtin.systemd:
     name: elasticsearch
     enabled: true

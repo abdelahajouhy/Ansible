@@ -1,5 +1,5 @@
 ---
-- name: elasticsearch.yml
+- name: Config Elasticsearch deploy 
   ansible.builtin.template:
     src: elasticsearch.yml.j2
     dest: "{{ elasticsearch_app_dir }}/config/elasticsearch.yml"
@@ -8,7 +8,7 @@
     mode: "0640"
   notify: Restart Elasticsearch
 
-- name: JVM options
+- name: JVM options configurations
   ansible.builtin.template:
     src: jvm.options.j2
     dest: "{{ elasticsearch_app_dir }}/config/jvm.options"

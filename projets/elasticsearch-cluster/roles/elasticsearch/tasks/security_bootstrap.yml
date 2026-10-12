@@ -79,7 +79,7 @@
   run_once: true
   no_log: false
 
-- name: Cluster state
+- name: Cluster state check
   ansible.builtin.debug:
     msg:
       cluster_name: "{{ cluster_health.json.cluster_name }}"
