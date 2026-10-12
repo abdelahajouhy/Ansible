@@ -17,9 +17,9 @@ elasticsearch_path_logs: "{{ elasticsearch_log_dir }}"
 elasticsearch_http_port: 9200
 # --- Discovery ---
 elasticsearch_single_node: false
-elasticsearch_cluster_bootstrap: false  # true au 1er déploiement, false une fois le cluster formé
+elasticsearch_cluster_bootstrap: false  # true on the initial deployment, false once the cluster has formed
 
-# Utilisées uniquement si elasticsearch_single_node: false
+# Used only when elasticsearch_single_node: false
 elasticsearch_discovery_seed_hosts: "{{ groups['elasticsearch'] | map('extract', hostvars, 'ansible_host') | list }}"
 elasticsearch_cluster_initial_master_nodes:
   - srv-abde01
@@ -29,14 +29,14 @@ elasticsearch_cluster_initial_master_nodes:
 # --- Cluster ---
 elasticsearch_allocation_awareness_attributes: "rack_id"
 
-# --- Mémoire ---
+# --- Memory ---
 elasticsearch_heap: "512m"
-elasticsearch_memory_lock: false        # true une fois LimitMEMLOCK=infinity validé
+elasticsearch_memory_lock: false
 
-# --- Sécurité ---
+# --- Security ---
 elasticsearch_security_enabled: true
 elasticsearch_security_bootstrap: true         
-elasticsearch_transport_ssl_enable: true       # true quand transport.p12 existe
-elasticsearch_http_ssl_enable: true            # true quand http.p12 existe
+elasticsearch_transport_ssl_enable: true                      # Set to true when transport.p12 exists
+elasticsearch_http_ssl_enable: true                           # Set to true when http.p12 exists
 elasticsearch_transport_ssl_verification_mode: "certificate"
-elasticsearch_monitori_user: "otel_monitor"
+elasticsearch_monitoring_user: "otel_monitor"
