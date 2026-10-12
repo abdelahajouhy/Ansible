@@ -1,5 +1,5 @@
 ---
-- name: Install Python and hvac dependencies
+- name: Dependencies installation
   ansible.builtin.apt:
     name:
       - python3
