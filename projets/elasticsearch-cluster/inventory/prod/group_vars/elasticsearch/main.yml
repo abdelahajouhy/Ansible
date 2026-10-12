@@ -39,3 +39,4 @@ elasticsearch_security_bootstrap: true
 elasticsearch_transport_ssl_enable: true       # true quand transport.p12 existe
 elasticsearch_http_ssl_enable: true            # true quand http.p12 existe
 elasticsearch_transport_ssl_verification_mode: "certificate"
+elasticsearch_monitori_user: "otel_monitor"
