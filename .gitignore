@@ -7,3 +7,7 @@ ansible-vault-pwd
 # Ansible
 *.retry
 .ansible/
+
+# Scripts
+clean_es.sh
+clean_kibana.sh
