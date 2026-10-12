@@ -1,3 +1,4 @@
+# ============================ Globals ============================ #
 env: "prod"
 ansible_become_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
@@ -7,7 +8,10 @@ ansible_become_password: !vault |
           3366363732366535340a343537613966396561393561393764373338363032613736323338303130
           3461
 
+global_dir_app: "/applis"
+global_dir_log: "/log"
 
+# ============================ HVault ============================ #
 vault_url: "http://172.31.224.1:8200"
 vault_token: !vault |
           $ANSIBLE_VAULT;1.1;AES256
@@ -20,5 +24,20 @@ vault_token: !vault |
 vault_pki_engine: "pki_int"
 vault_pki_role_name: "ajouhy-databde-2026-applis"
 
-global_dir_app: "/applis"
-global_dir_log: "/log"
+# ============================ Otel Collector  ============================ #
+opentelemetry_user_owner: opentelemetry
+opentelemetry_user_group: opentelemetry
+
+opentelemetry_app_dir: "{{ global_dir_app }}/opentelemetry"
+opentelemetry_path_bin: "{{ opentelemetry_app_dir }}/bin"
+
+opentelemetry_version: "0.162.0"
+opentelemetry_package: "otelcol-contrib_{{ opentelemetry_version }}_linux_amd64.deb"
+
+opentelemetry_download_url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ opentelemetry_version }}/{{ opentelemetry_package }}"
+opentelemetry_download_dest: "/tmp/{{ opentelemetry_package }}"
+opentelemetry_extract_dir: "/tmp/otel-extract"
+
+# ============================ Prometheus ============================ #
+prometheus_endpoint: "0.0.0.0:8889"
+prometheus_jobs_discovery: "/etc/prometheus/discovery.yml"
