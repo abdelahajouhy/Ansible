@@ -8,17 +8,29 @@ elasticsearch.hosts:
 {% for host in kibana_elasticsearch_hosts %}
   - "{{ host }}"
 {% endfor %}
+
 elasticsearch.username: "{{ kibana_elasticsearch_username }}"
-# elasticsearch.password : stocké dans le keystore Kibana
-{% if kibana_elasticsearch_ssl_ca is defined %}
+
+# ============================== TLS =============================
+{% if kibana_security_enabled | default(false) | bool %}
+
+# Kibana HTTPS
+server.ssl.enabled: true
+server.ssl.certificate: "{{ kibana_certs_dir }}/certificate.pem"
+server.ssl.key: "{{ kibana_certs_dir }}/private.key"
+server.publicBaseUrl: "https://kibana-{{ inventory_hostname }}.{{ kibana_domain }}:5601"
+
+# Kibana -> Elasticsearch HTTPS
 elasticsearch.ssl.certificateAuthorities:
-  - "{{ kibana_elasticsearch_ssl_ca }}"
+  - "{{ kibana_certs_dir }}/ca_chain.pem"
+elasticsearch.ssl.verificationMode: full
+
 {% endif %}
 
 # ============================ Paths =============================
 path.data: "{{ kibana_app_dir }}/data"
 
-# ============================ Logging ===========================
+# =========================== Logging ============================
 logging:
   appenders:
     file:
