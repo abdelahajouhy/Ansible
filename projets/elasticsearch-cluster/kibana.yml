@@ -1,5 +1,5 @@
 ---
-- name: Kibana
+- name: Install and configure Kibana
   hosts: kibana
   become: true
   roles:

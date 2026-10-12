@@ -1,5 +1,5 @@
 ---
-- name: Baseline servres onfigurations
+- name: Install and configure the common setups for all servers
   hosts: all
   become: true
   become_user: root
