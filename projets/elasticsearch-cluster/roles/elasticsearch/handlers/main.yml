@@ -3,12 +3,17 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
-- name: Restart Elasticsearch
+- name: Restart Elasticsearch service
   ansible.builtin.systemd:
     name: elasticsearch
     state: restarted
 
-- name: Attendre que Elasticsearch écoute
+- name: Restart Opentelemetry service
+  ansible.builtin.systemd:
+    name: opentelemetry
+    state: restarted
+
+- name: Wait for Elasticsearch listening
   ansible.builtin.wait_for:
     host: "{{ elasticsearch_network_host }}"
     port: "{{ elasticsearch_http_port }}"
