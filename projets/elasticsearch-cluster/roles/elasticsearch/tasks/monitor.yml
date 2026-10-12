@@ -1,0 +1,59 @@
+---
+- name: Refresh the discovery Prometheus jobs
+  ansible.builtin.template:
+    src: prometheus_file_sd_config.yml.j2
+    dest: "{{ prometheus_jobs_discovery }}"
+    owner: prometheus
+    group: prometheus
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+  tags:
+  - refresh_prometheus
+  
+- name: Read certificate from Vault KV
+  community.hashi_vault.vault_read:
+    path: "kv/data/secret/elasticsearch/{{ env }}/certificates/{{ inventory_hostname }}"
+    url: "{{ vault_url }}"
+    auth_method: token
+    token: "{{ vault_token }}"
+  register: kv_certificate
+  no_log: true
+
+- name: CA copy
+  ansible.builtin.copy:
+    content: "{{ kv_certificate.data.data.data.ca_chain | join('\n') }}"
+    dest: "{{ opentelemetry_app_dir }}/ca_chain.pem"
+    owner: "{{ opentelemetry_user_owner }}"
+    group: "{{ opentelemetry_user_group }}"
+    mode: "0640"
+  notify: Restart Opentelemetry
+
+- name: OpenTelemetry configuration deploy 
+  ansible.builtin.template:
+    src: opentelemetry.yml.j2
+    dest: "{{ opentelemetry_app_dir }}/config.yaml"
+    owner: "{{ opentelemetry_user_owner }}"
+    group: "{{ opentelemetry_user_group }}"
+    mode: "0640"
+  notify: Restart Opentelemetry
+
+- name: OpenTelemetry systemd unit deploy
+  ansible.builtin.template:
+    src: opentelemetry.service.j2
+    dest: /etc/systemd/system/opentelemetry.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart Opentelemetry
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start OpenTelemetry service
+  ansible.builtin.systemd:
+    name: opentelemetry
+    enabled: true
+    state: started

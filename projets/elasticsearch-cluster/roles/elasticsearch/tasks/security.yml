@@ -1,0 +1,6 @@
+---
+- name: Elasticsearch bootstrap password
+  ansible.builtin.include_tasks: security_bootstrap.yml
+  when:
+    - elasticsearch_security_enabled | bool
+    - elasticsearch_security_bootstrap | default(false) | bool

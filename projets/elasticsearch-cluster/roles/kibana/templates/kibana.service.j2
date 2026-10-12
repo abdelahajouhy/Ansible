@@ -1,0 +1,20 @@
+[Unit]
+Description=Kibana
+After=network-online.target elasticsearch.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ kibana_user_owner }}
+Group={{ kibana_user_group }}
+Environment=KBN_HOME={{ kibana_app_dir }}
+Environment=KBN_PATH_CONF={{ kibana_app_dir }}/config
+Environment=NODE_OPTIONS=--max-old-space-size={{ kibana_max_old_space_size }}
+ExecStart={{ kibana_app_dir }}/bin/kibana
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65535
+TimeoutStartSec=180
+
+[Install]
+WantedBy=multi-user.target

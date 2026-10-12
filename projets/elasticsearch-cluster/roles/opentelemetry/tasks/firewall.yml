@@ -1,0 +1,6 @@
+- name: Firewalld rule for OpenTelemetry port
+  ansible.posix.firewalld:
+    port: 8889/tcp
+    permanent: true
+    immediate: true
+    state: enabled

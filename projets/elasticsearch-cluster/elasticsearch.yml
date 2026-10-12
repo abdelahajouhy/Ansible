@@ -1,0 +1,7 @@
+---
+- name: Install and configure Elasticsearch cluster
+  hosts: elasticsearch
+  become: true
+  roles:
+    - elasticsearch
+  

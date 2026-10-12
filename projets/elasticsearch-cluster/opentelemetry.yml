@@ -1,0 +1,6 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: true
+  roles:
+    - opentelemetry

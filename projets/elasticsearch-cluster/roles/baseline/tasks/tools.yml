@@ -1,0 +1,8 @@
+---
+- name: Dependencies installation
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-hvac
+    state: present
+    update_cache: true

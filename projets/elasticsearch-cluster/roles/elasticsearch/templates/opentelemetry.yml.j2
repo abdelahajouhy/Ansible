@@ -1,0 +1,189 @@
+receivers:
+
+  host_metrics:
+    collection_interval: 30s
+    root_path: /
+    scrapers:
+
+      process:
+        include:
+          names: ["java", "node"]
+          match_type: regexp
+        mute_process_name_error: true
+        mute_process_exe_error: true
+        mute_process_io_error: true
+        mute_process_user_error: true
+
+        resource_attributes:
+          process.command_line:
+            enabled: true
+
+        metrics:
+          process.disk.io:
+            enabled: true
+          process.memory.usage:
+            enabled: true
+          process.context_switches:
+            enabled: true
+          process.memory.virtual:
+            enabled: true
+          process.disk.operations:
+            enabled: true
+          process.open_file_descriptors:
+            enabled: true
+          process.paging.faults:
+            enabled: true
+          process.threads:
+            enabled: true
+          process.uptime:
+            enabled: true
+
+      cpu:
+        metrics:
+          system.cpu.utilization:
+            enabled: true
+          system.cpu.logical.count:
+            enabled: true
+          system.cpu.frequency:
+            enabled: true
+          system.cpu.physical.count:
+            enabled: true
+
+      disk:
+        metrics:
+          system.disk.io:
+            enabled: true
+          system.disk.io_time:
+            enabled: true
+          system.disk.merged:
+            enabled: true
+          system.disk.operation_time:
+            enabled: true
+          system.disk.operations:
+            enabled: true
+          system.disk.pending_operations:
+            enabled: true
+
+      filesystem:
+        metrics:
+          system.filesystem.inodes.usage:
+            enabled: true
+          system.filesystem.usage:
+            enabled: true
+
+      load:
+        metrics:
+          system.cpu.load_average.15m:
+            enabled: true
+          system.cpu.load_average.1m:
+            enabled: true
+          system.cpu.load_average.5m:
+            enabled: true
+
+      memory:
+        metrics:
+          system.memory.usage:
+            enabled: true
+          system.linux.memory.available:
+            enabled: true
+          system.linux.memory.dirty:
+            enabled: true
+          system.memory.limit:
+            enabled: true
+          system.memory.linux.hugepages.limit:
+            enabled: true
+          system.memory.linux.hugepages.page_size:
+            enabled: true
+          system.memory.linux.hugepages.reserved:
+            enabled: true
+          system.memory.linux.hugepages.utilization:
+            enabled: true
+          system.memory.utilization:
+            enabled: true
+
+      processes:
+        metrics:
+          system.processes.created:
+            enabled: true
+
+  elasticsearch:
+    endpoint: "https://{{ ansible_host }}:{{ elasticsearch_http_port }}"
+    tls:
+      ca_file: "{{ opentelemetry_app_dir }}/ca_chain.pem"
+    nodes: ["_local"]
+    username: "{{ elasticsearch_monitoring_user }}"
+    password: otel_monitor
+    collection_interval: 10s
+
+processors:
+
+  transform/app:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["app"], attributes["process.executable.name"]) where attributes["process.executable.name"] != nil
+          #- set(attributes["app"], "kafka") where attributes["process.command_line"] != nil and IsMatch(attributes["process.command_line"], "kafka\\.Kafka")
+          - set(attributes["app"], "elasticsearch") where attributes["process.command_line"] != nil and IsMatch(attributes["process.command_line"], "org\\.elasticsearch")
+          - set(attributes["app"], "kibana") where attributes["process.command_line"] != nil and IsMatch(attributes["process.command_line"], "kibana")
+
+  resource/clean:
+    attributes:
+      - key: process.command_line
+        action: delete
+
+  attributes:
+    actions:
+      - key: environment
+        action: upsert
+        value: prod
+
+      - key: type
+        action: upsert
+        value: system
+
+  resource/es:
+    attributes:
+      - key: app
+        action: upsert
+        value: elasticsearch
+
+  attributes/app:
+    actions:
+      - key: environment
+        action: upsert
+        value: prod
+
+      - key: type
+        action: upsert
+        value: application
+
+exporters:
+
+  prometheus:
+    endpoint: "{{ prometheus_endpoint }}"
+    namespace: default
+    resource_constant_labels:
+      included: ["*"]
+
+service:
+
+  pipelines:
+
+    metrics:
+      receivers:
+        - host_metrics
+      processors:
+        - transform/app
+        - resource/clean
+        - attributes
+      exporters:
+        - prometheus
+
+    metrics/es:
+      receivers:
+        - elasticsearch
+      processors:
+        - resource/es
+        - attributes/app
+      exporters:
+        - prometheus

@@ -1,0 +1,106 @@
+---
+- name: Linux group creation 
+  ansible.builtin.group:
+    name: "{{ opentelemetry_user_group }}"
+    system: true
+    state: present
+
+- name: Linux user creation
+  ansible.builtin.user:
+    name: "{{ opentelemetry_user_owner }}"
+    group: "{{ opentelemetry_user_group }}"
+    shell: /usr/sbin/nologin
+    create_home: false
+    system: true
+    state: present
+
+- name: Directories creation
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - path: "{{ opentelemetry_app_dir }}"
+      owner: "{{ opentelemetry_user_owner }}"
+      group: "{{ opentelemetry_user_group }}"
+      mode: "0750"
+    - path: "{{ opentelemetry_path_bin }}"
+      owner: root
+      group: root
+      mode: "0755"
+
+- name: Check the binary
+  ansible.builtin.stat:
+    path: "{{ opentelemetry_path_bin }}/opentelemetry"
+  register: opentelemetry_binary
+
+- name: Check the binary version 
+  ansible.builtin.command:
+    argv:
+      - "{{ opentelemetry_path_bin }}/opentelemetry"
+      - --version
+  register: opentelemetry_installed
+  changed_when: false
+  failed_when: false
+  when: opentelemetry_binary.stat.exists
+
+- name: OpenTelemetry install
+  when: >
+    not opentelemetry_binary.stat.exists
+    or (opentelemetry_version not in (opentelemetry_installed.stdout | default('')))
+  block:
+    - name: Download OpenTelemetry package
+      ansible.builtin.get_url:
+        url: "{{ opentelemetry_download_url }}"
+        dest: "{{ opentelemetry_download_dest }}"
+        timeout: 200
+        force: false
+        mode: "0644"
+
+    - name: Creation of the temp directory for the extract  
+      ansible.builtin.file:
+        path: "{{ opentelemetry_extract_dir }}"
+        state: directory
+        mode: "0700"
+
+    - name: Debian package extract
+      ansible.builtin.command:
+        argv:
+          - dpkg-deb
+          - --extract
+          - "{{ opentelemetry_download_dest }}"
+          - "{{ opentelemetry_extract_dir }}"
+      changed_when: true
+
+    - name: OpenTelemetry binary copy
+      ansible.builtin.copy:
+        src: "{{ opentelemetry_extract_dir }}/usr/bin/otelcol-contrib"
+        dest: "{{ opentelemetry_path_bin }}/opentelemetry"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Configuration files copy
+      ansible.builtin.copy:
+        src: "{{ opentelemetry_extract_dir }}/etc/otelcol-contrib/{{ item }}"
+        dest: "{{ opentelemetry_app_dir }}/{{ item }}"
+        remote_src: true
+        owner: root
+        group: "{{ opentelemetry_user_group }}"
+        mode: "0640"
+        force: false
+      loop:
+        - config.yaml
+        - otelcol-contrib.conf
+
+  always:
+    - name: Delete the temp directory for the extract  
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ opentelemetry_download_dest }}"
+        - "{{ opentelemetry_extract_dir }}"

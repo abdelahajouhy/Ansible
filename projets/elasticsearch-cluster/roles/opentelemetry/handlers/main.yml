@@ -1,0 +1,9 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart Opentelemetry
+  ansible.builtin.systemd:
+    name: opentelemetry
+    state: restarted

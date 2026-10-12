@@ -1,0 +1,16 @@
+---
+- name: Config kibana deploy 
+  ansible.builtin.template:
+    src: kibana.yml.j2
+    dest: "{{ kibana_app_dir }}/config/kibana.yml"
+    owner: "{{ kibana_user_owner }}"
+    group: "{{ kibana_user_group }}"
+    mode: "0640"
+  notify: Restart kibana
+
+- name: Rights on directories
+  ansible.builtin.file:
+    path: "{{ kibana_app_dir }}"
+    owner: "{{ kibana_user_owner }}"
+    group: "{{ kibana_user_group }}"
+    recurse: true

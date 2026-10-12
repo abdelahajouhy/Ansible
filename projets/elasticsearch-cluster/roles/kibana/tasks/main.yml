@@ -1,0 +1,24 @@
+---
+- ansible.builtin.import_tasks: install.yml
+  tags:
+    - install
+
+- ansible.builtin.import_tasks: firewall.yml
+  tags:
+    - firewall
+
+- ansible.builtin.import_tasks: https.yml
+  tags:
+    - https
+
+- ansible.builtin.import_tasks: config.yml
+  tags:
+    - config
+
+- ansible.builtin.import_tasks: systemd.yml
+  tags:
+    - systemd
+
+- ansible.builtin.import_tasks: security.yml
+  tags:
+    - security

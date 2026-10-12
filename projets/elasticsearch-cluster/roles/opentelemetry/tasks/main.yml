@@ -1,0 +1,6 @@
+---
+- ansible.builtin.import_tasks: install.yml
+  tags: [install]
+
+- ansible.builtin.import_tasks: firewall.yml
+  tags: [firewall]

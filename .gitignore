@@ -1,6 +1,13 @@
+# Ansible Vault password
+ansible-vault-pwd
+
 # VS Code
 .vscode/
 
 # Ansible
 *.retry
 .ansible/
+
+# Scripts
+clean_es.sh
+clean_kibana.sh

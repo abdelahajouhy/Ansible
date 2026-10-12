@@ -1,0 +1,36 @@
+---
+- name: Linux group creation 
+  ansible.builtin.group:
+    name: "{{ kibana_user_group }}"
+    system: true
+
+- name: Linux user creation
+  ansible.builtin.user:
+    name: "{{ kibana_user_owner }}"
+    group: "{{ kibana_user_group }}"
+    shell: /sbin/nologin
+    create_home: false
+    system: true
+
+- name: Directories creation
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ kibana_user_owner }}"
+    group: "{{ kibana_user_group }}"
+    mode: "0750"
+  loop:
+    - "{{ kibana_app_dir }}"
+    - "{{ kibana_log_dir }}"
+    - "{{ kibana_certs_dir }}"
+    - "{{ kibana_app_dir }}/data"
+
+- name: Download and extract archive
+  ansible.builtin.unarchive:
+    src: "{{ kibana_download_url }}"
+    dest: "{{ kibana_app_dir }}"
+    remote_src: true
+    owner: "{{ kibana_user_owner }}"
+    group: "{{ kibana_user_group }}"
+    extra_opts: ["--strip-components=1"]
+    creates: "{{ kibana_app_dir }}/bin/kibana"

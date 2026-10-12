@@ -1,0 +1,37 @@
+---
+elasticsearch_user_owner: elasticsearch
+elasticsearch_user_group: elasticsearch
+
+elasticsearch_app_dir: "{{ global_dir_app }}/elasticsearch"
+elasticsearch_log_dir: "{{ global_dir_log }}/elasticsearch"
+
+elasticsearch_version: "9.5.4"
+download_url: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
+
+elasticsearch_cluster_name: "cluster-databde"
+elasticsearch_path_data: "{{ elasticsearch_app_dir }}/data"
+elasticsearch_path_logs: "{{ elasticsearch_log_dir }}"
+
+elasticsearch_http_port: 9200
+
+# --- Discovery ---
+elasticsearch_single_node: true
+# Only used when 'elasticsearch_single_node: false'
+# elasticsearch_discovery_seed_hosts:
+#   - serv01-dev
+# elasticsearch_cluster_initial_master_nodes:
+#   - serv01-dev
+
+# --- Cluster ---
+elasticsearch_allocation_awareness_attributes: "rack_id"
+
+# --- Memory ---
+elasticsearch_heap: "512m"
+elasticsearch_memory_lock: false
+
+# --- Security ---
+elasticsearch_security_enabled: true            # Authentication enabled (required for reset-password)
+elasticsearch_security_bootstrap: false         # Set to false after the first successful run
+elasticsearch_transport_ssl_enable: false       # Set to true when transport.p12 exists
+elasticsearch_http_ssl_enable: false            # Set to true when http.p12 exists
+elasticsearch_transport_ssl_verification_mode: "certificate"

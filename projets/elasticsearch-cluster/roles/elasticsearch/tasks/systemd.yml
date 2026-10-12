@@ -1,0 +1,19 @@
+---
+- name: Deploy Elasticsearch systemd unit
+  ansible.builtin.template:
+    src: elasticsearch.service.j2
+    dest: /etc/systemd/system/elasticsearch.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart Elasticsearch
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable Elasticsearch service
+  ansible.builtin.systemd:
+    name: elasticsearch
+    enabled: true

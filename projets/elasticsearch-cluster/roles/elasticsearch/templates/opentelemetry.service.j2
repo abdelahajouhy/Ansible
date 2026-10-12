@@ -1,0 +1,18 @@
+[Unit]
+Description=OpenTelemetry Collector Contrib for Elasticsearch and OS metrics
+After=network.target
+
+[Service]
+Type=simple
+User={{ opentelemetry_user_owner }}
+Group={{ opentelemetry_user_group }}
+ExecStart={{ opentelemetry_path_bin }}/opentelemetry --config={{ opentelemetry_app_dir }}/config.yaml
+Restart=on-failure
+KillMode=mixed
+
+# never use the root user, use the Capabilities to scrap process from /proc
+AmbientCapabilities=CAP_SYS_PTRACE CAP_DAC_READ_SEARCH
+CapabilityBoundingSet=CAP_SYS_PTRACE CAP_DAC_READ_SEARCH
+
+[Install]
+WantedBy=multi-user.target

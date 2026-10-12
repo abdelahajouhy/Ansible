@@ -1,0 +1,90 @@
+---
+- name: Retrieve Elasticsearch credentials from Hvault
+  ansible.builtin.uri:
+    url: "{{ vault_url }}/v1/kv/data/secret/elasticsearch/{{ env }}/elastic"
+    method: GET
+    headers:
+      X-Vault-Token: "{{ vault_token }}"
+    return_content: true
+    status_code: 200
+  register: vault_elasticsearch_credentials
+  run_once: true
+  no_log: true
+
+- name: Retrieve the elastic secrets from Hvault (username and password)
+  ansible.builtin.set_fact:
+    elastic_username: "{{ vault_elasticsearch_credentials.json.data.data.username }}"
+    elastic_password: "{{ vault_elasticsearch_credentials.json.data.data.password }}"
+  run_once: true
+  no_log: true
+
+- name: Reset the password to the internal Elasticsearch keystore
+  ansible.builtin.command:
+    cmd: "runuser -u {{ elasticsearch_user_owner }} -- {{ elasticsearch_app_dir }}/bin/elasticsearch-reset-password -u elastic -i -b --url {{ elasticsearch_base_url }}"
+    stdin: "{{ elastic_password }}\n{{ elastic_password }}"
+  environment:
+    ES_PATH_CONF: "{{ elasticsearch_app_dir }}/config"
+  run_once: true
+  changed_when: true
+  no_log: true
+
+- name: Test and validation of the elastic user authentification
+  ansible.builtin.uri:
+    url: "{{ elasticsearch_base_url }}/_cluster/health"
+    method: GET
+    user: "{{ elastic_username }}"
+    password: "{{ elastic_password }}"
+    force_basic_auth: true
+    return_content: true
+    status_code: [200, 401]
+    ca_path: "{{ elasticsearch_path_certs }}/ca_chain.pem"
+  register: cluster_health
+  until: cluster_health.status == 200
+  retries: 30
+  delay: 2
+  run_once: true
+  no_log: true
+
+- name: Retrieve Kibana credentials from Hvault
+  ansible.builtin.uri:
+    url: "{{ vault_url }}/v1/kv/data/secret/kibana/{{ env }}/kibana_system"
+    method: GET
+    headers:
+      X-Vault-Token: "{{ vault_token }}"
+    return_content: true
+    status_code: 200
+  register: vault_kibana_credentials
+  run_once: true
+  no_log: true
+
+- name: Retrieve the Kibana secrets from Hvault (username and password)
+  ansible.builtin.set_fact:
+    kibana_system_username: "{{ vault_kibana_credentials.json.data.data.username }}"
+    kibana_system_password: "{{ vault_kibana_credentials.json.data.data.password }}"
+  run_once: true
+  no_log: true
+
+- name: Definition of the password kibana_system over the Elastic API
+  ansible.builtin.uri:
+    url: "{{ elasticsearch_base_url }}/_security/user/kibana_system/_password"
+    method: POST
+    user: "{{ elastic_username }}"
+    password: "{{ elastic_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      password: "{{ kibana_system_password }}"
+    status_code: 200
+    ca_path: "{{ elasticsearch_path_certs }}/ca_chain.pem"
+  run_once: true
+  no_log: true
+
+- name: Cluster state check
+  ansible.builtin.debug:
+    msg:
+      cluster_name: "{{ cluster_health.json.cluster_name }}"
+      status: "{{ cluster_health.json.status }}"
+      number_of_nodes: "{{ cluster_health.json.number_of_nodes }}"
+      number_of_data_nodes: "{{ cluster_health.json.number_of_data_nodes }}"
+      unassigned_shards: "{{ cluster_health.json.unassigned_shards }}"
+  run_once: true

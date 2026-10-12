@@ -1,0 +1,68 @@
+---
+- name: Retrieve Kibana credentials from Vault
+  ansible.builtin.uri:
+    url: "{{ vault_url }}/v1/kv/data/secret/kibana/{{ env }}/kibana_system"
+    method: GET
+    headers:
+      X-Vault-Token: "{{ vault_token }}"
+    return_content: true
+    status_code: 200
+  register: vault_kibana_credentials
+  no_log: true
+
+- name: Retrieve kibana_system username and password
+  ansible.builtin.set_fact:
+    kibana_system_username: "{{ vault_kibana_credentials.json.data.data.username }}"
+    kibana_system_password: "{{ vault_kibana_credentials.json.data.data.password }}"
+  no_log: true
+
+- name: Test kibana_system authentication
+  ansible.builtin.uri:
+    url: "{{ kibana_elasticsearch_hosts[0] }}/_security/_authenticate"
+    method: GET
+    user: "{{ kibana_system_username }}"
+    password: "{{ kibana_system_password }}"
+    force_basic_auth: true
+    return_content: true
+    status_code: 200
+  register: kibana_system_auth
+  no_log: true
+
+- name: Check if the keystore exists
+  ansible.builtin.stat:
+    path: "{{ kibana_app_dir }}/config/kibana.keystore"
+  register: kibana_keystore
+
+- name: Create the keystore
+  ansible.builtin.command:
+    argv:
+      - runuser
+      - -u
+      - "{{ kibana_user_owner }}"
+      - --
+      - "{{ kibana_app_dir }}/bin/kibana-keystore"
+      - create
+  environment:
+    KBN_PATH_CONF: "{{ kibana_app_dir }}/config"
+  when: not kibana_keystore.stat.exists
+  changed_when: true
+
+- name: Add the Elasticsearch password to the keystore
+  ansible.builtin.command:
+    argv:
+      - runuser
+      - -u
+      - "{{ kibana_user_owner }}"
+      - --
+      - "{{ kibana_app_dir }}/bin/kibana-keystore"
+      - add
+      - elasticsearch.password
+      - --stdin
+      - --force
+    stdin: "{{ kibana_system_password }}"
+  environment:
+    KBN_PATH_CONF: "{{ kibana_app_dir }}/config"
+  when: (not kibana_keystore.stat.exists) or (kibana_update_password | default(false) | bool)
+  changed_when: true
+  no_log: true
+  notify: Restart kibana
