@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="DatAbde%C2%AE-logo.png" alt="DatAbde Platform" width="400">
+  <img src="project/databde-platform/docs/images/DatAbde-logo.png" alt="DatAbde Platform" width="400">
 </p>
 
 <p align="center">
@@ -209,7 +209,16 @@ The platform is being developed incrementally.
 
 The existing foundation includes Elasticsearch, Kibana, and infrastructure observability components. Kafka, Spark, MinIO, Superset, the SQL engine, and their integrations form the broader architecture to be implemented and validated progressively.
 
+
 ## Future Vision: Agentic AI
 
 The Agentic AI capability aims to help users understand their problems, investigate potential causes, and identify possible solutions.
 It will build on the platform's data processing and analytical capabilities to support more intelligent investigation and decision-making.
+
+---
+
+<p align="center">
+  <sub>Created by Ajouhy Abdelah</sub>
+  <br>
+  <sub>© 2026 DatAbde — All rights reserved.</sub>
+</p>
