@@ -1,6 +1,11 @@
-# DatAbde Platform
+<p align="center">
+  <img src="DatAbde%C2%AE-logo.png" alt="DatAbde Platform" width="400">
+</p>
 
-**An unified platform I created for data processing, analytics, and infrastructure observability.**
+<p align="center">
+</p>
+
+**DatAbde is an unified platform I created for data processing, analytics, and infrastructure observability.**
 
 ## Overview
 
