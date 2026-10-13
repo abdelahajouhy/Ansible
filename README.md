@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="project/databde-platform/docs/images/DatAbde-logo.png" alt="DatAbde Platform" width="400">
+  <img src="docs/images/DatAbde-logo.png" alt="DatAbde Platform" width="400">
 </p>
 
 <p align="center">
